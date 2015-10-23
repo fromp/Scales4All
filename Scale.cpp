@@ -167,6 +167,7 @@ std::vector<std::string> Scale::makeScale(std::string root, std::string inputSca
 
 	if(root.length() < 2) scaleReturn = fixScale(scaleReturn);
 	else if (root.at(1) == '#') scaleReturn = fixScaleSharp(scaleReturn);
+	else if (root.at(1) == 'b') scaleReturn = fixScaleFlat(scaleReturn);
 
 	//Set currentScale to scaleReturn, so currentScale can be used to find chords
 	currentScale = scaleReturn;
@@ -345,6 +346,106 @@ std::vector<std::string> Scale::fixScaleSharp(std::vector<std::string> inputScal
 				outScale.at(i) = outScale.at(i) + "#";
 			}
 			
+		}
+	}
+
+	return outScale;
+}
+
+/*************************************************************************************
+** Function: fixScaleFlat
+** Most recent date modified: 2015/10/23
+** Description: Set output notes so every note is represented (A through G) instead
+**			 of note names on keyboard.
+*************************************************************************************/
+std::vector<std::string> Scale::fixScaleFlat(std::vector<std::string> inputScale) {
+	std::vector<std::string> outScale = inputScale;
+
+	if (outScale.size() < 6) return outScale;
+
+	int stop = 0;
+	std::string root = outScale.at(0);
+
+	int i = 0;
+	while (!stop) {
+		i++;
+		if (outScale[i] == root) stop = i;
+	}
+
+	std::vector<std::string> aToG = { "Ab", "Bb", "Cb", "Db", "Eb", "Fb", "Gb" };
+
+	int aToGPos = 0;
+	for (int i = 0; i < aToG.size(); i++) {
+		if (aToG.at(i) == root) aToGPos = i;
+
+	}
+
+	for (int i = 1; i < stop; i++) {
+		int len = outScale.at(i).length();
+		std::string swap = aToG.at((aToGPos + i) % 7);
+		if (outScale.at(i).at(0) != swap.at(0)) {
+
+			int swapDiff = outScale.at(i).at(0) - swap.at(0);
+			
+			if (outScale.at(i) == "A" && swap == "Bb") {
+				outScale.at(i) = "Bb";
+				len = 2;
+			}
+			else if (outScale.at(i) == "D" && swap == "Eb") {
+				outScale.at(i) = "Eb";
+				len = 2;
+			}
+			else if (outScale.at(i) == "G" && swap == "Ab") {
+				outScale.at(i) = "Ab";
+				len = 2;
+			}
+			else if (outScale.at(i) == "C" && swap == "Db") {
+				outScale.at(i) = "Db";
+				len = 2;
+			}
+			else outScale.at(i) = swap;
+
+			if (len > 1) {
+				outScale.at(i) = outScale.at(i) + "b";
+			}
+
+		}
+	}
+
+	for (int i = outScale.size() - 2; i > stop; i--) {
+		aToGPos++;
+		int len = outScale.at(i).length();
+
+		if (aToGPos > 6) aToGPos -= 7;
+
+		std::string swap = aToG.at(aToGPos);
+
+		if (outScale.at(i).at(0) != swap.at(0)) {
+
+			int swapDiff = outScale.at(i).at(0) - swap.at(0);
+			if (outScale.at(i) == "A" && swap == "Bb") {
+				outScale.at(i) = "Bb";
+				len = 2;
+			} 
+			else if (outScale.at(i) == "D" && swap == "Eb") {
+				outScale.at(i) = "Eb";
+				len = 2;
+			}
+			else if (outScale.at(i) == "G" && swap == "Ab") {
+				outScale.at(i) = "Ab";
+				len = 2;
+			}
+			else if (outScale.at(i) == "C" && swap == "Db") {
+				outScale.at(i) = "Db";
+				len = 2;
+			}
+			else outScale.at(i) = swap;
+
+			if (len > 1) {
+				outScale.at(i) = outScale.at(i) + "b";
+			}
+			
+
 		}
 	}
 

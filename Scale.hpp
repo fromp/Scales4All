@@ -38,6 +38,7 @@ public:
 
 	std::vector<std::string> fixScale(std::vector<std::string> inputScale);
 	std::vector<std::string> fixScaleSharp(std::vector<std::string> inputScale);
+	std::vector<std::string> fixScaleFlat(std::vector<std::string> inputScale);
 
 	std::vector<std::string> getScaleNames() {
 		std::vector<std::string> names;
