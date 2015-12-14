@@ -63,9 +63,6 @@ protected:
 	
 	
 public:
-
-	//See scale.cpp for comments about below functions
-
 	bool loadScales();
 	bool makeScale(std::string root, std::string inputScale);
 	
