@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstdlib>
+#include <iomanip>
 #include "Scale.hpp"
 
 using namespace std;
@@ -13,15 +15,22 @@ bool check(string input) {
 		if (input == chromScale[i]) return true;
 	for (int i = 0; i < altChromScale.size(); i++)
 		if (input == altChromScale[i]) return true;
-	if (input == "Q") return true;
+	
 	return false;
 }
 
-bool checkNames(string scaleName, vector<string> allScaleNames) {
-	for (int i = 0; i < allScaleNames.size(); i++) {
-		if (scaleName == allScaleNames.at(i)) return true;
-	}
-	return false;
+bool checkNames(string *scaleName, vector<string> allScaleNames) {
+	string stringN = *scaleName;
+	if (stringN.length() < 1) return false;
+	if (toupper(stringN[0]) == 'Q') return true;
+	for (int i = 0; i < stringN.length(); i++)
+		if (!isdigit(stringN[i])) return false;
+	int choice = atoi(stringN.c_str());
+	if (choice < 0 || choice > 11) return false;
+	*scaleName = allScaleNames.at(choice - 1);
+	return true;
+
+
 }
 
 int main() {
@@ -30,103 +39,68 @@ int main() {
 	bool stop = false;
 	scale.loadScales();
 	vector<string> allScaleNames = scale.getScaleNames();
-	//scale.printScales();
+	cout << "\tWelcome to Scale4All" << endl << endl;
+	cout << "Give me a mode and a root note, and I will give you all the notes in the scale!" << endl << endl;
+	
 	while (!stop) {
 		string scaleName = "";
-		cout << "Please enter a scale name." << endl;
+				
+		cout << "1. Major, 2. Natural Minor, 3. Harmonic minor, 4. Melodic minor, 5. Ioanian," << endl;
+		cout << "6. Dorian, 7. Phrygian, 8. Lydian, 9. Mixolydian, 10. Aeolian, 11. Locrian, " << endl;
+		cout << "Enter Q to stop." << endl << endl;
+		
 		do {
+			cout << "Please enter the number corresponding to the desired mode listed above." << endl;
 			getline(cin, scaleName);
-			if (!checkNames(scaleName, allScaleNames)) scaleName = "";
+			if (!checkNames(&scaleName, allScaleNames)) scaleName = "";
 		} while (scaleName == "");
-		cout << "Choose root. Enter Q to stop." << endl;
-		string input = "";
-		do {
-			getline(cin, input);
-			if (!check(input)) input = "";
-		} while (input == "");
-
-		vector<string> myScale;
-
-		if(input != "Q") scale.makeScale(input, scaleName);
-		//vector<ScaleNotes> notes = scale.getCurrentScale();
-		/*for (int i = 0; i < notes.size(); i++) {
-			cout << notes.at(i).note << endl;
-		}*/
-
-		myScale = scale.getCurrentKey();
-		cout << "Scale (based on piano keys): ";
-		for (int i = 0; i < myScale.size(); i++) {
-			cout << myScale.at(i) << " ";
-		}
-		cout << endl;
-		myScale = scale.getCurrentFixed();
-		cout << "Scale (based on note names): ";
-		for (int i = 0; i < myScale.size(); i++) {
-			cout << myScale.at(i) << " ";
-		}
 		
-		cout << endl << "keys" << endl;
+		if (toupper(scaleName[0]) != 'Q') {
+			string input = "";
+			do {
+				cout << "Choose a root note using A through G, with '#' for sharps and 'b' for flats." << endl;
+				cout << "Please that the following notes cannot be used: 'B#', 'E#', 'Cb', and 'Fb'" << endl;
+				getline(cin, input);
+				input[0] = toupper(input[0]);
+				if (!check(input)) input = "";
+			} while (input == "");
 
-		scale.makeChords();
-		vector<ChordsFromNotes> keyChords = scale.getChordsKeys();
-		
-		for (int i = 0; i < keyChords.size(); i++) {
-			cout << "Root: " << keyChords.at(i).RootNote << endl;
-			for (int z = 0; z < keyChords.at(i).chordsFromOneNote.size(); z++) {
-				cout << keyChords.at(i).chordsFromOneNote.at(z).name << endl;
-				for (int y = 0; y < keyChords.at(i).chordsFromOneNote.at(z).notesInChord.size(); y++) {
-				//for (int y = 0; y < 2; y++) {
-					cout << keyChords.at(i).chordsFromOneNote.at(z).notesInChord.at(y) << " ";
-				}
-				cout << endl;
+			cout << endl << input << " " << scaleName << endl;
+			cout << "Scale using piano keys:" << endl;
+			vector<string> myScale;
+			vector<string> myScaleFixed;
+
+			
+			myScale = scale.makeScale(input, scaleName);
+			for (int i = 0; i < myScale.size(); i++) {
+				std::cout << std::setw(4) << std::left << myScale.at(i) << " ";
+			}
+
+			if (myScale.at(0).length() < 2) myScaleFixed = scale.fixScale(myScale);
+			else if (myScale.at(0).at(1) == '#') myScaleFixed = scale.fixScaleSharp(myScale);
+			else if (myScale.at(0).at(1) == 'b') myScaleFixed = scale.fixScaleFlat(myScale);
+
+			cout << endl << "Scale using all the notes: " << endl;
+			for (int i = 0; i < myScale.size(); i++) {
+				cout << setw(4) << left << myScaleFixed.at(i) << " ";
 			}
 		}
-
-		cout << "fixed" << endl;
-
-		keyChords = scale.getChordsFixed();
 		
-		for (int i = 0; i < keyChords.size(); i++) {
-			cout << "Root: " << keyChords.at(i).RootNote << endl;
-			for (int z = 0; z < keyChords.at(i).chordsFromOneNote.size(); z++) {
-				cout << keyChords.at(i).chordsFromOneNote.at(z).name << endl;
-				for (int y = 0; y < keyChords.at(i).chordsFromOneNote.at(z).notesInChord.size(); y++) {
-					//for (int y = 0; y < 2; y++) {
-					cout << keyChords.at(i).chordsFromOneNote.at(z).notesInChord.at(y) << " ";
-				}
-				cout << endl;
-			}
-		}
-
 		cout << endl;
-
 		cout << endl;
-		
-		for (int x = 0; x < keyChords.size(); x++) {
-			cout << keyChords.at(x).RootNote << " ";
+		if (toupper(scaleName[0]) == 'Q') stop = true;
+		else {
+			cout << endl << "Press enter to continue..." << endl << endl;
+			cin.get();
 		}
-		cout << endl;
-		
-		cout << "Root note name: ";
-		getline(cin, input);
-
-		for (int x = 0; x < keyChords.size(); x++) {
-			if (input == keyChords.at(x).RootNote) {
-				for (int z = 0; z < keyChords.at(x).chordsFromOneNote.size(); z++) {
-					cout << keyChords.at(x).chordsFromOneNote.at(z).name << endl;
-					for (int y = 0; y < keyChords.at(x).chordsFromOneNote.at(z).notesInChord.size(); y++) {
-						//for (int y = 0; y < 2; y++) {
-						cout << keyChords.at(x).chordsFromOneNote.at(z).notesInChord.at(y) << " ";
-					}
-					cout << endl;
-				}
-			}
-		}
-
-
-
-		if (input == "Q") stop = true;
 	}
 
-	return false;
+	cout << endl << endl;
+	cout << "Thank you for using Scales4All! Have a great day!" << endl;
+	cout << "Press enter to quit." << endl;
+	
+	cin.get();
+
+
+	return 0;
 }
