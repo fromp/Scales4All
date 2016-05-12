@@ -3,7 +3,6 @@
 
 /*************************************************************************************
 ** Function: setSelectedSCale
-** Most recent date modified: 2015/10/23
 ** Description: Take name of scale and returns vector with selected scale
 *************************************************************************************/
 std::vector<int> Scale::setSelectedScale(std::string inputScale) {
@@ -13,7 +12,7 @@ std::vector<int> Scale::setSelectedScale(std::string inputScale) {
 	std::vector<int> theScale = { 0 };
 
 	//Loop through vector of scale name to find selected scale
-	for (int i = 0; i < scaleStepsVec.size(); i++) {
+	for (unsigned int i = 0; i < scaleStepsVec.size(); i++) {
 		if (inputScale == scaleStepsVec.at(i).scaleName) pos = i;
 	}
 
@@ -21,7 +20,7 @@ std::vector<int> Scale::setSelectedScale(std::string inputScale) {
 	if (pos == -1) return theScale;
 	//Fill scale with interval ints if found
 	else {
-		for (int i = 0; i < scaleStepsVec.at(pos).steps.size(); i++) {
+		for (unsigned int i = 0; i < scaleStepsVec.at(pos).steps.size(); i++) {
 			//Add int from steps vector held in vector of scaleSteps struct
 			theScale.push_back(scaleStepsVec.at(pos).steps.at(i));
 		}
@@ -33,7 +32,6 @@ std::vector<int> Scale::setSelectedScale(std::string inputScale) {
 
 /*************************************************************************************
 ** Function: loadScales
-** Most recent date modified: 2015/10/23
 ** Description: Reads scale information from .txt file and stores information in 
 **			 vectors.
 *************************************************************************************/
@@ -65,7 +63,7 @@ bool Scale::loadScales() {
 		std::string nums = "";
 		
 		//Add intervals to vector of ints
-		for (int i = 0; i < inp.length(); i++) {
+		for (unsigned int i = 0; i < inp.length(); i++) {
 			//Put interval int when space is found
 			if (inp.at(i) == ' ') {
 				std::string z = nums;
@@ -96,15 +94,14 @@ bool Scale::loadScales() {
 
 /*************************************************************************************
 ** Function: makeScale
-** Most recent date modified: 2015/10/23
 ** Description: Uses chromatic scale and vector of scale intervals to find the notes
 **              in a chosen scale. Returns vector of strings.
 *************************************************************************************/
-std::vector<std::string> Scale::makeScale(std::string root, std::string inputScale) {
+void Scale::makeScale(std::string root, std::string inputScale) {
 	
 	//If scale var is currently full, clear it
-	if(currentScale.size() > 0) clearScale();
-
+	if(currentScale.size() > 0) clearScale();	
+	
 	//Get scale intervals
 	std::vector<int> selectedScale = setSelectedScale(inputScale);
 	
@@ -115,29 +112,26 @@ std::vector<std::string> Scale::makeScale(std::string root, std::string inputSca
 	bool alt = false;
 	
 	//Search chromatic scale
-	for (int i = 0; i < chromScale.size(); i++) {
+	for (unsigned int i = 0; i < chromScale.size(); i++) {
 		if (chromScale[i] == root) startPos = i;
 	}
 	
 	//Search alt chromatic scale
 	if (startPos == -1) {
 		alt = true;
-		for (int i = 0; i < altChromScale.size(); i++) {
+		for (unsigned int i = 0; i < altChromScale.size(); i++) {
 			if (altChromScale[i] == root) startPos = i;
 		}
 	}
 	
 	//Var for looping through scale interval vector
-	int id = 0;
+	unsigned int id = 0;
 
 	//var for holding current note, to be pushed to vector
 	std::string tempNote = root;
 
 	//Var for holding position on Chromatic scale
 	int z = startPos;
-	
-	//Vector holding string representing all notes in scale
-	std::vector<std::string> scaleReturn;
 	
 	//Loop through interval vector
 	while (id < selectedScale.size()) {
@@ -154,37 +148,30 @@ std::vector<std::string> Scale::makeScale(std::string root, std::string inputSca
 		else tempNote = altChromScale[z];
 		
 		//Push tempNote to scaleReturn
-		scaleReturn.push_back(tempNote);
+		currentScale.push_back(tempNote);
 		
 		id++;		
 	}
 	
-	/*
-	if(root.length() < 2) scaleReturn = fixScale(scaleReturn);
-	else if (root.at(1) == '#') scaleReturn = fixScaleSharp(scaleReturn);
-	else if (root.at(1) == 'b') scaleReturn = fixScaleFlat(scaleReturn);
-	*/
-	//Set currentScale to scaleReturn, so currentScale can be used to find chords
-	currentScale = scaleReturn;
-
-	return scaleReturn;
+	if (currentScale.at(0).length() < 2) fixScale();
+	else if (currentScale.at(0).at(1) == '#') fixScaleSharp();
+	else if (currentScale.at(0).at(1) == 'b') fixScaleFlat();
 }
 
 /*************************************************************************************
 ** Function: fixScale
-** Most recent date modified: 2015/10/23
 ** Description: Set output notes so every note is represented (A through G) instead
 **			 of note names on keyboard.
 *************************************************************************************/
-std::vector<std::string> Scale::fixScale(std::vector<std::string> inputScale) {
+void Scale::fixScale() {
 	
-	std::vector<std::string> outScale = inputScale;
+	std::vector<std::string> outScale = currentScale;
 
 	//If less than 7 notes, this won't work, so just return it.
-	if (outScale.size() < 6) return outScale;
+	if (outScale.size() < 6) currentScaleFixed = currentScale;
 
 	//Get root note
-	int stop = 0;
+	unsigned int stop = 0;
 	std::string root = outScale.at(0);
 
 	//Find position position where ascending scale "peaks"
@@ -200,12 +187,12 @@ std::vector<std::string> Scale::fixScale(std::vector<std::string> inputScale) {
 	int aToGPos = 0;
 
 	//Set aToGPos to position of root note on the aToG scale
-	for (int i = 0; i < aToG.size(); i++) {
+	for (unsigned int i = 0; i < aToG.size(); i++) {
 		if (aToG.at(i) == root) aToGPos = i;
 	}
 
 	//Loop through vector of notes until we get back to the root note (descending half corrected later)
-	for (int i = 1; i < stop; i++) {
+	for (unsigned int i = 1; i < stop; i++) {
 		
 		//Wrap around scale while incrementing and set swap equal to next note
 		std::string swap = aToG.at((aToGPos + i) % 7);
@@ -247,7 +234,7 @@ std::vector<std::string> Scale::fixScale(std::vector<std::string> inputScale) {
 	}
 
 	//Perform above operation backwards for descending half of the scale
-	for (int i = outScale.size()-2; i > stop; i--) {
+	for (unsigned int i = outScale.size()-2; i > stop; i--) {
 		aToGPos++;
 		//Main difference is in wrapping procedure
 		if (aToGPos > 6) aToGPos -= 7;
@@ -279,24 +266,24 @@ std::vector<std::string> Scale::fixScale(std::vector<std::string> inputScale) {
 		}
 	}
 	
-	return outScale;
+	currentScaleFixed = outScale;
 }
 
 /*************************************************************************************
 ** Function: fixScaleSharp
-** Most recent date modified: 2015/10/23
 ** Description: Set output notes so every note is represented (A through G) instead
 **			 of note names on keyboard.
 *************************************************************************************/
-std::vector<std::string> Scale::fixScaleSharp(std::vector<std::string> inputScale) {
+void Scale::fixScaleSharp() {
 	
 	//Prepare scale for "fixing"
-	std::vector<std::string> outScale = inputScale;
+	std::vector<std::string> outScale = currentScale;
 
 	//If less than 7, this won't work, so just return it.
-	if (outScale.size() < 6) return outScale;
+	if (outScale.size() < 6) currentScaleFixed = currentScale;
 
-	int stop = 0;
+
+	unsigned int stop = 0;
 	//Set root note
 	std::string root = outScale.at(0);
 
@@ -312,13 +299,13 @@ std::vector<std::string> Scale::fixScaleSharp(std::vector<std::string> inputScal
 
 	//Set aToGPos to position of root note on the aToG scale
 	int aToGPos = 0;
-	for (int i = 0; i < aToG.size(); i++) {
+	for (unsigned int i = 0; i < aToG.size(); i++) {
 		if (aToG.at(i) == root) aToGPos = i;
 
 	}
 
 	//Loop through vector of notes until we get back to the root note (descending half corrected later)
-	for (int i = 1; i < stop; i++) {
+	for (unsigned int i = 1; i < stop; i++) {
 
 		int len = outScale.at(i).length();
 
@@ -327,10 +314,7 @@ std::vector<std::string> Scale::fixScaleSharp(std::vector<std::string> inputScal
 
 		//If next note does not equal note in scale vector...
 		if (outScale.at(i).at(0) != swap.at(0)) {
-			//...find out how big the difference is between current note and "correct" note
-			//For example: Current note is C, but should be B, so the differnce is -1
-			int swapDiff = outScale.at(i).at(0) - swap.at(0);
-
+		
 			outScale.at(i) = swap;
 			
 			if (len > 0) {
@@ -340,7 +324,7 @@ std::vector<std::string> Scale::fixScaleSharp(std::vector<std::string> inputScal
 		}
 	}
 
-	for (int i = outScale.size() - 2; i > stop; i--) {
+	for (unsigned int i = outScale.size() - 2; i > stop; i--) {
 		aToGPos++;
 		int len = outScale.at(i).length();
 		
@@ -350,7 +334,6 @@ std::vector<std::string> Scale::fixScaleSharp(std::vector<std::string> inputScal
 		
 		if (outScale.at(i).at(0) != swap.at(0)) {
 
-			int swapDiff = outScale.at(i).at(0) - swap.at(0);
 			outScale.at(i) = swap;
 
 			if (len > 0) {
@@ -360,21 +343,20 @@ std::vector<std::string> Scale::fixScaleSharp(std::vector<std::string> inputScal
 		}
 	}
 
-	return outScale;
+	currentScaleFixed = outScale;
 }
 
 /*************************************************************************************
 ** Function: fixScaleFlat
-** Most recent date modified: 2015/10/23
 ** Description: Set output notes so every note is represented (A through G) instead
 **			 of note names on keyboard.
 *************************************************************************************/
-std::vector<std::string> Scale::fixScaleFlat(std::vector<std::string> inputScale) {
-	std::vector<std::string> outScale = inputScale;
+void Scale::fixScaleFlat() {
+	std::vector<std::string> outScale = currentScale;
 
-	if (outScale.size() < 6) return outScale;
+	if (outScale.size() < 6) currentScaleFixed = currentScale;
 
-	int stop = 0;
+	unsigned int stop = 0;
 	std::string root = outScale.at(0);
 
 	int i = 0;
@@ -386,35 +368,16 @@ std::vector<std::string> Scale::fixScaleFlat(std::vector<std::string> inputScale
 	std::vector<std::string> aToG = { "Ab", "Bb", "C", "Db", "Eb", "F", "Gb" };
 
 	int aToGPos = 0;
-	for (int i = 0; i < aToG.size(); i++) {
+	for (unsigned int i = 0; i < aToG.size(); i++) {
 		if (aToG.at(i) == root) aToGPos = i;
 
 	}
 
-	for (int i = 1; i < stop; i++) {
+	for (unsigned int i = 1; i < stop; i++) {
 		int len = outScale.at(i).length();
 		std::string swap = aToG.at((aToGPos + i) % 7);
 		if (outScale.at(i).at(0) != swap.at(0)) {
 
-			int swapDiff = outScale.at(i).at(0) - swap.at(0);
-			
-			/*if (outScale.at(i) == "A" && swap == "Bb") {
-				outScale.at(i) = "Bb";
-				len = 2;
-			}
-			else if (outScale.at(i) == "D" && swap == "Eb") {
-				outScale.at(i) = "Eb";
-				len = 2;
-			}
-			else if (outScale.at(i) == "G" && swap == "Ab") {
-				outScale.at(i) = "Ab";
-				len = 2;
-			}
-			else if (outScale.at(i) == "C" && swap == "Db") {
-				outScale.at(i) = "Db";
-				len = 2;
-			}
-			else */
 			outScale.at(i) = swap;
 
 			if (len > 0) {
@@ -424,7 +387,7 @@ std::vector<std::string> Scale::fixScaleFlat(std::vector<std::string> inputScale
 		}
 	}
 
-	for (int i = outScale.size() - 2; i > stop; i--) {
+	for (unsigned int i = outScale.size() - 2; i > stop; i--) {
 		aToGPos++;
 		int len = outScale.at(i).length();
 
@@ -434,24 +397,6 @@ std::vector<std::string> Scale::fixScaleFlat(std::vector<std::string> inputScale
 
 		if (outScale.at(i).at(0) != swap.at(0)) {
 
-			int swapDiff = outScale.at(i).at(0) - swap.at(0);
-			/*if (outScale.at(i) == "A" && swap == "Bb") {
-				outScale.at(i) = "Bb";
-				len = 2;
-			} 
-			else if (outScale.at(i) == "D" && swap == "Eb") {
-				outScale.at(i) = "Eb";
-				len = 2;
-			}
-			else if (outScale.at(i) == "G" && swap == "Ab") {
-				outScale.at(i) = "Ab";
-				len = 2;
-			}
-			else if (outScale.at(i) == "C" && swap == "Db") {
-				outScale.at(i) = "Db";
-				len = 2;
-			}
-			else */
 			outScale.at(i) = swap;
 
 			if (len > 0) {
@@ -462,5 +407,26 @@ std::vector<std::string> Scale::fixScaleFlat(std::vector<std::string> inputScale
 		}
 	}
 
-	return outScale;
+	currentScaleFixed = outScale;
+}	
+
+/*************************************************************************************
+** Function: makeChord
+** Description: Makes a chord using the root note (an int) passed to the function
+**				and the intervals (a vector of ints) to find each note in the
+**				chord. (Loops starts at indicated root note and then jumps to
+**				the next note based on each interval.)
+*************************************************************************************/
+void Scale::makeChord(int rootNote, std::vector<int> intervals){
+
+	currentChord.clear();
+
+	int pos = rootNote;
+
+	for(int i = 0; i < intervals.size(); i++){
+		pos = (pos + intervals[i]) % 7;
+		currentChord.push_back(currentScale[pos]);
+	}
 }
+
+   
